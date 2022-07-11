@@ -30,6 +30,15 @@ from matplotlib import cm
 from statistics import mean
 
 
+def _to_dict(df):
+    rows = [list(row) for row in df.collect()]
+    ar = np.array(rows)
+    tmp_dict = {}
+    for i, column in enumerate(df.columns):
+        tmp_dict[column] = list(ar[:, i])
+    return tmp_dict
+
+
 def _better_label(index, data):
     labels = []
     for i in range(len(index)):
@@ -38,6 +47,24 @@ def _better_label(index, data):
     return labels
 
 
+def _other_field(datadict: dict, lessthan: int):
+    values_lst = list(datadict.values())
+    others = 0
+    tmp_dict = {"index": [], "data_percent": [], "other_index": [],"other_percent": []}
+    for i in range(len(values_lst[0])):
+        percent = float(values_lst[1][i])*100/sum(map(float, values_lst[1]))
+        if(percent<lessthan):
+            others+=percent
+            tmp_dict['other_index'].append(values_lst[0][i])
+            tmp_dict['other_percent'].append("%.3f" % percent)
+        else:
+            tmp_dict['index'].append(values_lst[0][i])
+            tmp_dict['data_percent'].append("%.3f" % percent)
+    tmp_dict['index'].append("Others")
+    tmp_dict['data_percent'].append("%.3f" % others)
+    return tmp_dict
+    
+    
 def _donut(dictlist: list, figname: str):
     fig, ax = plt.subplots(nrows=1,ncols=len(dictlist), figsize=(10, 10), subplot_kw={'aspect': 'equal'})
     for i in range(len(dictlist)):
@@ -69,25 +96,39 @@ def _donut(dictlist: list, figname: str):
     plt.show()
 
 
-def _lines_graph(x, data0, data1, xlabel, ylabel, title, **dataLabels):
-    fig, ax = plt.subplots(figsize=(10, 10))
-    if(dataLabels):
-        ax.plot(x, data0, color="blue", label=dataLabels['dataLabel_0'])
-        ax.plot(x, data1, color="orange", label=dataLabels['dataLabel_1'])
-    else:
-        ax.plot(x, data0, color="blue")
-        ax.plot(x, data1, color="orange")
-    
-    plt.hlines(mean(data0), 0,10, linestyles ="dotted", colors ="blue")
-    plt.hlines(mean(data1), 0,10, linestyles ="dashed", colors ="orange")
-    ax.text(4,mean(data0),'%f' % (mean(data0)))
-    ax.text(4,mean(data1),'%f' % (mean(data1)))
+def _pie(dictlist: list, figname: str):
+    fig, ax = plt.subplots(nrows=1,ncols=len(dictlist), figsize=(10, 10), subplot_kw={'aspect': 'equal'})
+    for i in range(len(dictlist)):
+        values_lst = list(dictlist[i].values())
+        ax[i].pie(values_lst[1], labels=values_lst[0], autopct='%1.1f%%',
+            shadow=False, startangle=90)
+        ax[i].axis('equal') 
+        ax[i].set_title(values_lst[2], fontsize=15)
+   
+    plt.savefig(figname+".png")
+    plt.subplots_adjust(left=0.5,
+                        bottom=0.1, 
+                        right=2, 
+                        top=0.9, 
+                        wspace=0.4, 
+                        hspace=0.4)
+    plt.show()
 
-    ax.set(xlabel=xlabel, ylabel=ylabel,
-           title=title)
+
+def _line_graph(xvalues: list, dictlist: list, figinfo: dict, figname: str):
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    for i in range(len(dictlist)): 
+        values_lst = list(dictlist[i].values())
+        ax.plot(xvalues, values_lst[0], color=values_lst[2], label=values_lst[1])
+        plt.hlines(mean(values_lst[0]), min(xvalues), max(xvalues), linestyles="dashed", colors=values_lst[2])
+        ax.text(mean(xvalues),mean(values_lst[0]),'%f' % (mean(values_lst[0])))
+
+    ax.set(xlabel=figinfo["x_label"], ylabel=figinfo["y_label"],
+           title=figinfo["title"])
     ax.grid()
     plt.legend()
-#     plt.savefig('final-avg-cpueff-onsite-offsite.png')
+    plt.savefig(figname+".png")
     plt.show()
 
 
