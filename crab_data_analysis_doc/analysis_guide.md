@@ -462,7 +462,7 @@ _donut(lst, "ffdsf")
 
 
     
-![png](output_44_1.png)
+![png](/crab_data_analysis_doc/img/output_44_1.png)
     
 
 
@@ -505,7 +505,7 @@ _pie([testDf,testDf,testDf], "name")
 
 
     
-![png](output_48_0.png)
+![png](/crab_data_analysis_doc/img/output_48_0.png)
     
 
 
@@ -557,7 +557,7 @@ _line_graph(x, dictlist, info, "figname", True)
 
 
     
-![png](output_54_0.png)
+![png](/crab_data_analysis_doc/img/output_54_0.png)
     
 
 
@@ -568,7 +568,7 @@ _line_graph(x, dictlist, info, "figname", False)
 
 
     
-![png](output_55_0.png)
+![png](/crab_data_analysis_doc/img/output_55_0.png)
     
 
 
@@ -593,6 +593,6 @@ _table(cpu_gain_table)
 
 
     
-![png](output_58_0.png)
+![png](/crab_data_analysis_doc/img/output_58_0.png)
     
 
