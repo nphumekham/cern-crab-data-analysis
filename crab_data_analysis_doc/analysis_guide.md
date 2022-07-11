@@ -2,21 +2,31 @@ written by: Nutchaya Phumekham, July, 2022
 
 ### This notebook contains an explaination of each steps of CRAB data analysis. It focuses on how to read raw data from HDFS and process them in SWAN environment. It also contains the detailed explaination of some ready-to-use functions to make data analysis more convenient.
 
+#### Important Note:  To use the functions below, save file [utils.py](https://github.com/nutty7fold/cern-crab-data-analysis/blob/main/crab_data_analysis_doc/utils.py) in the same directory as your current Jupiter Notebook. Then simply import it. For example:
+
+
+```python
+from utils import _to_dict
+```
+
+See the full example [here.](https://github.com/nutty7fold/cern-crab-data-analysis/blob/main/crab_data_analysis_doc/analysis_example.ipynb)
+
 ## Table of content
-1. [Import](#1-Import)
-2. [Read raw data from HDFS using PySpark](#2-Read-raw-data-from-HDFS-using-PySpark)
-    * (2.1)[Define the default HDFS folder](#2.1-Define-the-default-HDFS-folder)
-    * (2.2)[Define the data structure](#2.2-Define-the-data-structure-needed)
-    * (2.3)[Get the candidate files](#2.3-Get-the-candidate-files-that-contains-the-date-needed)
-    * (2.4)[Spark dataframe](#2.4-Read-raw-data-to-spark-dataframe)
-3. [Query](#3-Query)
-4. [Collect row data from Spark dataframe](#4-Collect-row-data-from-Spark-dataframe)
-5. [Ready-to-use functions](#5-Ready-to-use-functions)
-     * (5.1) [Labels with percentage](#5.1-Labels-with-percentage)
-     * (5.2) [Donut with arrow labels](#5.2-Donut-with-arrow-labels)
-     * (5.3) [Multiple donuts](#5.3-Multiple-donuts)
-     * (5.4) [Lines Graph with Mean Values](#5.4-Lines-Graph-with-Mean-Values)
-     * (5.5) [Table](#5.5-Table)
+1. [Read raw data from HDFS using PySpark](#1-Read-raw-data-from-HDFS-using-PySpark)
+    * (1.1)[Define the default HDFS folder](#1.1-Define-the-default-HDFS-folder)
+    * (1.2)[Define the data structure](#1.2-Define-the-data-structure-needed)
+    * (1.3)[Get the candidate files](#1.3-Get-the-candidate-files-that-contains-the-date-needed)
+    * (1.4)[Spark dataframe](#1.4-Read-raw-data-to-spark-dataframe)
+2. [Query](#2-Query)
+3. [Ready-to-use functions](#3-Ready-to-use-functions)
+     * (3.1) [_to_dict](#3.1-_to_dict)
+     * (3.2) [_better_label](#3.2-_better_label)
+     * (3.3) [_other_fields](#3.3-_other_fields)
+     * (3.4) [_donut](#3.4-_donut)
+     * (3.5) [_pie](#3.5-_pie)
+     * (3.6) [_lines_graph](#3.6-_lines_graph)
+     * (3.7) [_table](#3.7-_table)
+4. [Note](#Note)
     
     
 
@@ -310,13 +320,13 @@ label
 
 
 
-### 3.3 _other_field
+### 3.3 _other_fields
 
-_other_field takes 2 arguments datadict: dict, lessthan: int and returns a dict with the structure {"index": [i1, i2], "data_percent": [d1, d2], "other_index": [i3, i4],"other_percent": [d3, d4]} where the other_index and other_percent contain a list of index and values that is less than the input lessthan.
+_other_fields takes 2 arguments datadict: dict, lessthan: int and returns a dict with the structure {"index": [i1, i2], "data_percent": [d1, d2], "other_index": [i3, i4],"other_percent": [d3, d4]} where the other_index and other_percent contain a list of index and values that is less than the input lessthan.
 
 
 ```python
-def _other_field(datadict: dict, lessthan: int):
+def _other_fields(datadict: dict, lessthan: int):
     values_lst = list(datadict.values())
     others = 0
     tmp_dict = {"index": [], "data_percent": [], "other_index": [],"other_percent": []}
@@ -337,7 +347,7 @@ def _other_field(datadict: dict, lessthan: int):
 
 
 ```python
-a = _other_field(testDf, 2)
+a = _other_fields(testDf, 2)
 a
 ```
 
@@ -462,7 +472,7 @@ _donut(lst, "ffdsf")
 
 
     
-![png](/crab_data_analysis_doc/img/output_44_1.png)
+![png](/crab_data_analysis_doc/img/output_47_1.png)
     
 
 
@@ -505,7 +515,7 @@ _pie([testDf,testDf,testDf], "name")
 
 
     
-![png](/crab_data_analysis_doc/img/output_48_0.png)
+![png](/crab_data_analysis_doc/img/output_51_0.png)
     
 
 
@@ -557,7 +567,7 @@ _line_graph(x, dictlist, info, "figname", True)
 
 
     
-![png](/crab_data_analysis_doc/img/output_54_0.png)
+![png](/crab_data_analysis_doc/img/output_57_0.png)
     
 
 
@@ -568,7 +578,7 @@ _line_graph(x, dictlist, info, "figname", False)
 
 
     
-![png](/crab_data_analysis_doc/img/output_55_0.png)
+![png](/crab_data_analysis_doc/img/output_58_0.png)
     
 
 
@@ -593,6 +603,15 @@ _table(cpu_gain_table)
 
 
     
-![png](/crab_data_analysis_doc/img/output_58_0.png)
+![png](/crab_data_analysis_doc/img/output_61_0.png)
     
 
+
+## Note
+
+##### - If data is  large, consider writing it to Parquet and reading it back directly in Python using PyArrow (Reading and Writing the Apache Parquet Format) completely skipping all the intermediate stages. [Ref](https://stackoverflow.com/questions/47536123/collect-or-topandas-on-a-large-dataframe-in-pyspark-emr)
+
+
+```python
+
+```

@@ -30,66 +30,6 @@ from matplotlib import cm
 from statistics import mean
 
 
-def _get_schema():
-    return StructType(
-        [
-            StructField(
-                "data",
-                StructType(
-                    [
-                        StructField("CMSSite", StringType(), nullable=True),
-                        StructField("RecordTime", LongType(), nullable=False),
-                        StructField("InputData", StringType(), nullable=True),
-                        StructField("CMSPrimaryDataTier", StringType(), nullable=True),
-                        StructField("Status", StringType(), nullable=True),
-                        StructField("OverflowType", StringType(), nullable=True),
-                        StructField("WallClockHr", DoubleType(), nullable=True),
-                        StructField("CoreHr", DoubleType(), nullable=True),
-                        StructField("CpuTimeHr", DoubleType(), nullable=True),
-                        StructField("RequestCpus", LongType(), nullable=True),
-                        StructField("Type", StringType(), nullable=True),
-                        StructField("CRAB_DataBlock", StringType(), nullable=True),
-                        StructField("GlobalJobId", StringType(), nullable=False),
-                        StructField("ExitCode", LongType(), nullable=True),
-                        StructField("Chirp_CRAB3_Job_ExitCode", LongType(), nullable=True),
-                        StructField("Chirp_WMCore_cmsRun_ExitCode", LongType(), nullable=True),
-                        StructField("JobExitCode", LongType(), nullable=True)
-                    ]
-                ),
-            ),
-        ]
-    )
-
-#ref https://github.com/dmwm/CMSSpark/blob/cd1a4725601a3c3679f27b7439aa34d16f1442a2/src/python/CMSSpark/condor_cpu_efficiency.py#L138
-def _get_candidate_files(start_date, end_date, spark, base=_DEFAULT_HDFS_FOLDER,):
-    """
-    Returns a list of hdfs folders that can contain data for the given dates.
-    """
-    st_date = start_date - timedelta(days=3)
-    ed_date = end_date + timedelta(days=3)
-    days = (ed_date - st_date).days
-    pre_candidate_files = [
-        "{base}/{day}{{,.tmp}}".format(
-            base=base, day=(st_date + timedelta(days=i)).strftime("%Y/%m/%d")
-        )
-        for i in range(0, days)
-    ]
-    sc = spark.sparkContext
-    # The candidate files are the folders to the specific dates,
-    # but if we are looking at recent days the compaction procedure could
-    # have not run yet so we will considerate also the .tmp folders.
-    candidate_files = [
-        f"{base}/{(st_date + timedelta(days=i)).strftime('%Y/%m/%d')}"
-        for i in range(0, days)
-    ]
-    FileSystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
-    URI = sc._gateway.jvm.java.net.URI
-    Path = sc._gateway.jvm.org.apache.hadoop.fs.Path
-    fs = FileSystem.get(URI("hdfs:///"), sc._jsc.hadoopConfiguration())
-    candidate_files = [url for url in candidate_files if fs.globStatus(Path(url))]
-    return candidate_files
-
-
 def _to_dict(df):
     rows = [list(row) for row in df.collect()]
     ar = np.array(rows)
@@ -107,18 +47,17 @@ def _better_label(index, data):
     return labels
 
 
-def _other_field(datadict: dict, lessthan: int):
-    values_lst = list(datadict.values())
+def _other_fields(index: list, value: list, lessthan: int):
     others = 0
     tmp_dict = {"index": [], "data_percent": [], "other_index": [],"other_percent": []}
-    for i in range(len(values_lst[0])):
-        percent = float(values_lst[1][i])*100/sum(map(float, values_lst[1]))
+    for i in range(len(index)):
+        percent = float(value[i])*100/sum(map(float, value))
         if(percent<lessthan):
             others+=percent
-            tmp_dict['other_index'].append(values_lst[0][i])
+            tmp_dict['other_index'].append(index[i])
             tmp_dict['other_percent'].append("%.3f" % percent)
         else:
-            tmp_dict['index'].append(values_lst[0][i])
+            tmp_dict['index'].append(index[i])
             tmp_dict['data_percent'].append("%.3f" % percent)
     tmp_dict['index'].append("Others")
     tmp_dict['data_percent'].append("%.3f" % others)
@@ -175,14 +114,15 @@ def _pie(dictlist: list, figname: str):
     plt.show()
 
 
-def _line_graph(xvalues: list, dictlist: list, figinfo: dict, figname: str):
+def _line_graph(xvalues: list, dictlist: list, figinfo: dict, figname: str, show_mean: bool):
     fig, ax = plt.subplots(figsize=(10, 10))
     
     for i in range(len(dictlist)): 
         values_lst = list(dictlist[i].values())
         ax.plot(xvalues, values_lst[0], color=values_lst[2], label=values_lst[1])
-        plt.hlines(mean(values_lst[0]), min(xvalues), max(xvalues), linestyles="dashed", colors=values_lst[2])
-        ax.text(mean(xvalues),mean(values_lst[0]),'%f' % (mean(values_lst[0])))
+        if(show_mean):
+            plt.hlines(mean(values_lst[0]), min(xvalues), max(xvalues), linestyles="dashed", colors=values_lst[2])
+            ax.text(mean(xvalues),mean(values_lst[0]),'%f' % (mean(values_lst[0])))
 
     ax.set(xlabel=figinfo["x_label"], ylabel=figinfo["y_label"],
            title=figinfo["title"])
