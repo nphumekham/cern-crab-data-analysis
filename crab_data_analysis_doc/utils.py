@@ -67,23 +67,37 @@ def _other_fields(index: list, value: list, lessthan: int):
 def _donut(dictlist: list, figname: str):
     fig, ax = plt.subplots(nrows=1,ncols=len(dictlist), figsize=(10, 10), subplot_kw={'aspect': 'equal'})
     for i in range(len(dictlist)):
-        keys_lst = list(dictlist[i].keys())
         values_lst = list(dictlist[i].values())
-    
-        wedges, texts = ax[i].pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=90)
-        ax[i].set_title(values_lst[2], y=1.08, fontsize=15)
-        bbox_props = {'boxstyle': 'square,pad=0.3', 'fc': 'w', 'ec': 'k', 'lw': 0.72 }
-        kw = {'arrowprops': {'arrowstyle': "-"},
-                  'bbox': bbox_props, 'zorder': 0, 'va':"center"}
-        for j, p in enumerate(wedges):
-            ang = (p.theta2 - p.theta1)/2. + p.theta1
-            y = np.sin(np.deg2rad(ang))
-            x = np.cos(np.deg2rad(ang))
-            horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
-            connectionstyle = "angle,angleA=0,angleB={}".format(ang)
-            kw["arrowprops"].update({"connectionstyle": connectionstyle})
-            ax[i].annotate(values_lst[0][j], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y),
-                        horizontalalignment=horizontalalignment, **kw)
+        if(len(dictlist)==1):
+            wedges, texts = ax.pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=90)
+            ax.set_title(values_lst[2], y=1.08, fontsize=15)
+            bbox_props = {'boxstyle': 'square,pad=0.3', 'fc': 'w', 'ec': 'k', 'lw': 0.72 }
+            kw = {'arrowprops': {'arrowstyle': "-"},
+                    'bbox': bbox_props, 'zorder': 0, 'va':"center"}
+            for j, p in enumerate(wedges):
+                ang = (p.theta2 - p.theta1)/2. + p.theta1
+                y = np.sin(np.deg2rad(ang))
+                x = np.cos(np.deg2rad(ang))
+                horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+                connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+                kw["arrowprops"].update({"connectionstyle": connectionstyle})
+                ax.annotate(values_lst[0][j], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y),
+                            horizontalalignment=horizontalalignment, **kw)
+        else:
+            wedges, texts = ax[i].pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=90)
+            ax[i].set_title(values_lst[2], y=1.08, fontsize=15)
+            bbox_props = {'boxstyle': 'square,pad=0.3', 'fc': 'w', 'ec': 'k', 'lw': 0.72 }
+            kw = {'arrowprops': {'arrowstyle': "-"},
+                    'bbox': bbox_props, 'zorder': 0, 'va':"center"}
+            for j, p in enumerate(wedges):
+                ang = (p.theta2 - p.theta1)/2. + p.theta1
+                y = np.sin(np.deg2rad(ang))
+                x = np.cos(np.deg2rad(ang))
+                horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+                connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+                kw["arrowprops"].update({"connectionstyle": connectionstyle})
+                ax[i].annotate(values_lst[0][j], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y),
+                            horizontalalignment=horizontalalignment, **kw)
    
     plt.savefig(figname+".png")
     plt.subplots_adjust(left=0.5,
@@ -99,10 +113,16 @@ def _pie(dictlist: list, figname: str):
     fig, ax = plt.subplots(nrows=1,ncols=len(dictlist), figsize=(10, 10), subplot_kw={'aspect': 'equal'})
     for i in range(len(dictlist)):
         values_lst = list(dictlist[i].values())
-        ax[i].pie(values_lst[1], labels=values_lst[0], autopct='%1.1f%%',
+        if(len(dictlist)==1):
+            ax.pie(values_lst[1], labels=values_lst[0], autopct='%1.1f%%',
             shadow=False, startangle=90)
-        ax[i].axis('equal') 
-        ax[i].set_title(values_lst[2], fontsize=15)
+            ax.axis('equal') 
+            ax.set_title(values_lst[2], fontsize=15) 
+        else:
+            ax[i].pie(values_lst[1], labels=values_lst[0], autopct='%1.1f%%',
+                shadow=False, startangle=90)
+            ax[i].axis('equal') 
+            ax[i].set_title(values_lst[2], fontsize=15)
    
     plt.savefig(figname+".png")
     plt.subplots_adjust(left=0.5,
