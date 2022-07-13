@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, date, timedelta
-
+from exitcode_dict.py import *
 import click
 import numpy as np
 import pandas as pd
@@ -109,6 +109,7 @@ def _donut(dictlist: list, figname: str):
     plt.show()
 
 
+
 def _pie(dictlist: list, figname: str):
     fig, ax = plt.subplots(nrows=1,ncols=len(dictlist), figsize=(10, 10), subplot_kw={'aspect': 'equal'})
     for i in range(len(dictlist)):
@@ -158,3 +159,28 @@ def _table(pandasDataframe):
     plt.axis('off')
     tbl = table(ax,pandasDataframe, loc='center')
     tbl.auto_set_font_size(True)
+    
+def _exitcode_info(exitcode: int):
+    exitcode_info = {"ExitCode": exitcode, "Type": "", "Meaning": exitcode_dict.get(str(exitcode), "")}
+    
+    """ending range plus one as python range exclude the last number"""
+    if exitcode in range(1, 512+1):
+        exitcode_info['Type'] = "standard ones in Unix and indicate a CMSSW abort that the cmsRun did not catch as exception"
+    elif exitcode in range(7000, 9000+1):
+        exitcode_info['Type'] = "cmsRun (CMSSW) exit codes. These codes may depend on specific CMSSW version"
+    elif exitcode in range(10000, 19999+1):
+        exitcode_info['Type'] = "Failures related to the environment setup"
+    elif exitcode in range(50000, 59999+1):
+        exitcode_info['Type'] = "Failures related executable file"
+    elif exitcode in range(60000, 69999+1):
+        exitcode_info['Type'] = "Failures related staging-OUT"
+    elif exitcode in range(70000, 79999+1):
+        exitcode_info['Type'] = "Failures related only for WMAgent."
+    elif exitcode in range(80000, 89999+1):
+        exitcode_info['Type'] = "Failures related only for CRAB3"
+    elif exitcode in range(90000, 99999+1):
+        exitcode_info['Type'] = "Other problems which does not fit to any range before"
+    
+    return exitcode_info
+
+
