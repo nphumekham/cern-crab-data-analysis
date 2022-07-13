@@ -11,7 +11,8 @@ from utils import (
     _donut,
     _pie,
     _line_graph,
-    _other_fields
+    _other_fields,
+    _exitcode_info
 )
 from datetime import datetime, date, timedelta
 from pyspark.sql.functions import (
@@ -428,45 +429,64 @@ _donut(dictlist52, "exitcode")
     
 
 
+### Additional Questions
+
+1. Which are the most frequent reason for job failures in last week/month/year... as a function of time. which are the most relevant as wasted resources (i.e. weighted by used wall time on grid).
+
 
 ```python
-
+df6 = raw_df.select(col('Type'), col('WallClockHr'), col('ExitCode'))\
+            .filter((col("Type")=="analysis")&(col("ExitCode").isNotNull()))\
+            .groupby(col('ExitCode'))\
+            .agg(_count(col('ExitCode')).alias("count_ExitCode"),\
+                 _sum("WallClockHr").alias("sum_WallClockHr"))\
+            .sort('count_ExitCode')
 ```
 
 
 ```python
-
+df6_dict = _to_dict(df6)
 ```
 
 
 ```python
-
+df6_exitcode = _other_fields(df6_dict['ExitCode'], df6_dict['count_ExitCode'], 2)
+df6_wallclock = _other_fields(df6_dict['ExitCode'], df6_dict['sum_WallClockHr'], 0.5)
 ```
 
 
 ```python
-
+dictlist6 = [{"index": df6_exitcode['index'],\
+             "values": df6_exitcode['data_percent'],\
+             "title": "count ExitCode"},\
+             {"index": df6_wallclock['index'],\
+             "values": df6_wallclock['data_percent'],\
+             "title": "sum wallclock"}
+           ]
 ```
 
 
 ```python
-
+_donut(dictlist6, "exitcode1")
+print(_exitcode_info(0))
+print(_exitcode_info(8028))
+print(_exitcode_info(50666))
+print(_exitcode_info(50660))
 ```
 
 
-```python
-
-```
-
-
-```python
-
-```
+    
+![png](/crab_data_analysis_doc/img/output_54_0.png)
+    
 
 
-```python
+    {'ExitCode': 0, 'Type': '', 'Meaning': ''}
+    {'ExitCode': 8028, 'Type': 'cmsRun (CMSSW) exit codes. These codes may depend on specific CMSSW version', 'Meaning': 'FileOpenError with fallback'}
+    {'ExitCode': 50666, 'Type': 'Failures related executable file', 'Meaning': ''}
+    {'ExitCode': 50660, 'Type': 'Failures related executable file', 'Meaning': 'Application terminated by wrapper because using too much RAM (RSS)'}
 
-```
+
+2. Which are the 5 (10) most used datasets in last week/month... etc. ? How much CPU time was spent on those ? Which fraction of the total ? How big are those ? How many users/tasks hit each dataset ?
 
 
 ```python
