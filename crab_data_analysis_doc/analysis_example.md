@@ -188,7 +188,6 @@ df1 = raw_df.groupby([col("CMSPrimaryDataTier")])\
 
 
 ```python
-#collect() took 3min while toPandas() took 1 min
 df1_dict = _to_dict(df1)
 ```
 
@@ -325,6 +324,18 @@ df4_onsite = _to_dict(df4.filter(col('inputData')=='Onsite'))
 df4_offsite = _to_dict(df4.filter(col('inputData')=='Offsite'))
 ```
 
+    IOPub message rate exceeded.
+    The notebook server will temporarily stop sending output
+    to the client in order to avoid crashing it.
+    To change this limit, set the config variable
+    `--NotebookApp.iopub_msg_rate_limit`.
+    
+    Current values:
+    NotebookApp.iopub_msg_rate_limit=1000.0 (msgs/sec)
+    NotebookApp.rate_limit_window=3.0 (secs)
+    
+
+
 
 ```python
 figinfo  = {"x_label": "hour in a day","y_label": "avgCpuEff_Core","title": "AVG CPU Efficiency May 1st"}
@@ -348,27 +359,23 @@ hour = [float(i) for i in df4_onsite['timestamp']]
 
 
 ```python
-_line_graph(hour, dictlist4, figinfo, True)
+_line_graph(hour, dictlist4, figinfo, "linegraph", False)
 ```
 
 
-    ---------------------------------------------------------------------------
-
-    TypeError                                 Traceback (most recent call last)
-
-    /tmp/ipykernel_3780/1414878780.py in <module>
-    ----> 1 _line_graph(hour, dictlist4, figinfo, True)
+    
+![png](/crab_data_analysis_doc/img/output_38_0.png)
     
 
-    /eos/home-i00/n/nphumekh/SWAN_projects/crab-data-analysis-document/utils.py in _line_graph(xvalues, dictlist, figinfo, figname)
 
 
-    TypeError: unsupported operand type(s) for +: 'bool' and 'str'
-
+```python
+_line_graph(hour, dictlist4, figinfo, "linegraph", True)
+```
 
 
     
-![png](/crab_data_analysis_doc/img/output_38_1.png)
+![png](/crab_data_analysis_doc/img/output_39_0.png)
     
 
 
@@ -406,9 +413,6 @@ df52_other = _other_fields(df52_dict['ExitCode'], df52_dict['count_ExitCode'], 2
 ```python
 dictlist52 = [{"index": df52_other['index'],\
              "values": df52_other['data_percent'],\
-             "title": "count ExitCode"},\
-              {"index": df52_other['index'],\
-             "values": df52_other['data_percent'],\
              "title": "count ExitCode"}
            ]
 ```
@@ -420,9 +424,49 @@ _donut(dictlist52, "exitcode")
 
 
     
-![png](/crab_data_analysis_doc/img/output_46_0.png)
+![png](/crab_data_analysis_doc/img/output_47_0.png)
     
 
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+
+```python
+
+```
 
 
 ```python
