@@ -12,7 +12,8 @@ from utils import (
     _pie,
     _line_graph,
     _other_fields,
-    _exitcode_info
+    _exitcode_info,
+    _better_label
 )
 from datetime import datetime, date, timedelta
 from pyspark.sql.functions import (
@@ -62,7 +63,8 @@ def _get_schema():
                         StructField("ExitCode", LongType(), nullable=True),
                         StructField("Chirp_CRAB3_Job_ExitCode", LongType(), nullable=True),
                         StructField("Chirp_WMCore_cmsRun_ExitCode", LongType(), nullable=True),
-                        StructField("JobExitCode", LongType(), nullable=True)
+                        StructField("JobExitCode", LongType(), nullable=True),
+                        StructField("CMS_SubmissionTool", StringType(), nullable=True)
                     ]
                 ),
             ),
@@ -105,7 +107,7 @@ def get_candidate_files(start_date, end_date, spark, base=_DEFAULT_HDFS_FOLDER):
 ```python
 schema = _get_schema()
 start_date = datetime(2022, 5, 1)
-end_date = datetime(2022, 5, 2)
+end_date = datetime(2022, 6, 1)
 ```
 
 
@@ -122,7 +124,37 @@ get_candidate_files(start_date, end_date, spark, base=_DEFAULT_HDFS_FOLDER)
      '/project/monitoring/archive/condor/raw/metric/2022/05/01',
      '/project/monitoring/archive/condor/raw/metric/2022/05/02',
      '/project/monitoring/archive/condor/raw/metric/2022/05/03',
-     '/project/monitoring/archive/condor/raw/metric/2022/05/04']
+     '/project/monitoring/archive/condor/raw/metric/2022/05/04',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/05',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/06',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/07',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/08',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/09',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/10',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/11',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/12',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/13',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/14',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/15',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/16',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/17',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/18',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/19',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/20',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/21',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/22',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/23',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/24',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/25',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/26',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/27',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/28',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/29',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/30',
+     '/project/monitoring/archive/condor/raw/metric/2022/05/31',
+     '/project/monitoring/archive/condor/raw/metric/2022/06/01',
+     '/project/monitoring/archive/condor/raw/metric/2022/06/02',
+     '/project/monitoring/archive/condor/raw/metric/2022/06/03']
 
 
 
@@ -137,7 +169,7 @@ raw_df = (
             schema=schema,
         ).select("data.*")
         .filter(
-            f"""Status IN ('Completed', 'Removed', 'Held', 'Error') 
+            f"""Status IN ('Completed') 
           AND RecordTime >= {start_date.timestamp() * 1000}
           AND RecordTime < {end_date.timestamp() * 1000}
           """
@@ -171,6 +203,7 @@ raw_df.printSchema()
      |-- Chirp_CRAB3_Job_ExitCode: long (nullable = true)
      |-- Chirp_WMCore_cmsRun_ExitCode: long (nullable = true)
      |-- JobExitCode: long (nullable = true)
+     |-- CMS_SubmissionTool: string (nullable = true)
     
 
 
@@ -486,7 +519,118 @@ print(_exitcode_info(50660))
     {'ExitCode': 50660, 'Type': 'Failures related executable file', 'Meaning': 'Application terminated by wrapper because using too much RAM (RSS)'}
 
 
-2. Which are the 5 (10) most used datasets in last week/month... etc. ? How much CPU time was spent on those ? Which fraction of the total ? How big are those ? How many users/tasks hit each dataset ?
+### data from _DEFAULT_HDFS_FOLDER = "/project/monitoring/archive/condor/raw/metric" range 5/1 - 6/1
+
+
+```python
+schema = _get_schema()
+start_date = datetime(2022, 5, 1)
+end_date = datetime(2022, 6, 1)
+```
+
+
+```python
+df7 = raw_df.select(col('WallClockHr'), col('ExitCode'))\
+            .filter((col("CMS_SubmissionTool")=="CRAB")&(col("ExitCode").isNotNull()))\
+            .groupby(col('ExitCode'))\
+            .agg(_count(col('ExitCode')).alias("count_ExitCode"),\
+                 _sum("WallClockHr").alias("sum_WallClockHr"))\
+            .sort('count_ExitCode')
+```
+
+
+```python
+df7_dict = _to_dict(df7)
+```
+
+
+```python
+df7_exitcode = _other_fields(df7_dict['ExitCode'], df7_dict['count_ExitCode'], 0.5)
+df7_wallclock = _other_fields(df7_dict['ExitCode'], df7_dict['sum_WallClockHr'], 0.5)
+```
+
+
+```python
+dictlist7 = [{"index": df7_exitcode['index'],\
+             "values": df7_exitcode['data_percent'],\
+             "title": "count ExitCode"},\
+             {"index": df7_wallclock['index'],\
+             "values": df7_wallclock['data_percent'],\
+             "title": "sum wallclock"}
+           ]
+```
+
+
+```python
+_donut(dictlist7, "checkwithgrafana")
+```
+
+
+    
+![png](/crab_data_analysis_doc/img/output_61_0.png)
+    
+
+
+#### time range july 14
+
+
+```python
+start_date = datetime(2022, 7, 14)
+end_date = datetime(2022, 7, 15)
+```
+
+
+```python
+df8 = raw_df.select(col('WallClockHr'), col('ExitCode'))\
+            .filter((col("CMS_SubmissionTool")=="CRAB")&(col("ExitCode").isNotNull()))\
+            .groupby(col('ExitCode'))\
+            .agg(_count(col('ExitCode')).alias("count_ExitCode"),\
+                 _sum("WallClockHr").alias("sum_WallClockHr"))\
+            .sort('sum_WallClockHr')
+```
+
+
+```python
+df8_dict = _to_dict(df8)
+```
+
+
+```python
+df8_exitcode = _other_fields(df8_dict['ExitCode'], df8_dict['count_ExitCode'], 0.5)
+df8_wallclock = _other_fields(df8_dict['ExitCode'], df8_dict['sum_WallClockHr'], 0.5)
+```
+
+
+```python
+dictlist8 = [{"index": df8_exitcode['index'],\
+             "values": df8_exitcode['data_percent'],\
+             "title": "count ExitCode"},\
+             {"index": df8_wallclock['index'],\
+             "values": df8_wallclock['data_percent'],\
+             "title": "sum wallclock"}
+           ]
+```
+
+
+```python
+my_donut(dictlist8, "checkwithgrafana2")
+```
+
+
+    
+![png](/crab_data_analysis_doc/img/output_68_0.png)
+    
+
+
+
+```python
+print(_exitcode_info(8021))
+print(_exitcode_info(60324))
+```
+
+    {'ExitCode': 8021, 'Type': 'cmsRun (CMSSW) exit codes. These codes may depend on specific CMSSW version', 'Meaning': 'FileReadError (May be a site error)'}
+    {'ExitCode': 60324, 'Type': 'Failures related staging-OUT', 'Meaning': 'Other stageout exception.'}
+
 
 
 ```python
