@@ -163,7 +163,6 @@ def _table(pandasDataframe):
 def short_datasetname(lst: list):
     tmp = []
     for name in lst:
-        print(len(name.split("/")[1]))
         if((len(name.split("/")[1])<15) & (len(name.split("/")[2])<15)):
             tmp.append("/"+"/".join([name.split("/")[i] for i in range(1,4)]))
         elif((len(name.split("/")[2])>15) & (len(name.split("/")[1])<15)):
