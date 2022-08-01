@@ -159,7 +159,22 @@ def _table(pandasDataframe):
     plt.axis('off')
     tbl = table(ax,pandasDataframe, loc='center')
     tbl.auto_set_font_size(True)
+
+def short_datasetname(lst: list):
+    tmp = []
+    for name in lst:
+        print(len(name.split("/")[1]))
+        if((len(name.split("/")[1])<15) & (len(name.split("/")[2])<15)):
+            tmp.append("/"+"/".join([name.split("/")[i] for i in range(1,4)]))
+        elif((len(name.split("/")[2])>15) & (len(name.split("/")[1])<15)):
+            tmp.append("/"+name.split("/")[1]+"/"+name.split("/")[2][0:15]+".../"+name.split("/")[3])
+        elif((len(name.split("/")[1])>15) & (len(name.split("/")[2])<15)):
+            tmp.append("/"+name.split("/")[1][0:15]+".../"+name.split("/")[2]+"/"+name.split("/")[3])
+        else:
+            tmp.append("/"+".../".join([name.split("/")[i] for i in range(1,3)])+".../"+name.split("/")[3])
+    return tmp
     
+
 def _exitcode_info(exitcode: int):
     exitcode_info = {"ExitCode": exitcode, "Type": "", "Meaning": exitcode_dict.get(str(exitcode), "")}
     
