@@ -42,7 +42,7 @@ def _to_dict(df):
 def _better_label(index, data):
     labels = []
     for i in range(len(index)):
-        percent = data[i]*100/sum(data)
+        percent = float(data[i])*100/sum(map(float, data))
         labels.append(index[i]+": %.3f"%percent+"%")
     return labels
 
@@ -69,7 +69,7 @@ def _donut(dictlist: list, figname: str):
     for i in range(len(dictlist)):
         values_lst = list(dictlist[i].values())
         if(len(dictlist)==1):
-            wedges, texts = ax.pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=90)
+            wedges, texts = ax.pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=0)
             ax.set_title(values_lst[2], y=1.08, fontsize=15)
             bbox_props = {'boxstyle': 'square,pad=0.3', 'fc': 'w', 'ec': 'k', 'lw': 0.72 }
             kw = {'arrowprops': {'arrowstyle': "-"},
@@ -84,7 +84,7 @@ def _donut(dictlist: list, figname: str):
                 ax.annotate(values_lst[0][j], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y),
                             horizontalalignment=horizontalalignment, **kw)
         else:
-            wedges, texts = ax[i].pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=90)
+            wedges, texts = ax[i].pie(values_lst[1], wedgeprops={'width': 0.5}, startangle=0)
             ax[i].set_title(values_lst[2], y=1.08, fontsize=15)
             bbox_props = {'boxstyle': 'square,pad=0.3', 'fc': 'w', 'ec': 'k', 'lw': 0.72 }
             kw = {'arrowprops': {'arrowstyle': "-"},
