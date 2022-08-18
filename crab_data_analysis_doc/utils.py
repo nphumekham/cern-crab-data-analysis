@@ -28,7 +28,7 @@ from pyspark.sql.types import (
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from statistics import mean
-
+from CMSSpark.src.python.CMSSpark import schemas as cms_schemas
 
 def _to_dict(df):
     rows = [list(row) for row in df.collect()]
@@ -107,7 +107,6 @@ def _donut(dictlist: list, figname: str):
                         wspace=0.4, 
                         hspace=0.4)
     plt.show()
-
 
 
 def _pie(dictlist: list, figname: str):
@@ -198,3 +197,30 @@ def _exitcode_info(exitcode: int):
     return exitcode_info
 
 
+def d_size_df(HDFS_DBS_FILES='/project/awg/cms/CMS_DBS3_PROD_GLOBAL/current/FILES/part-m-00000', 
+              HDFS_DBS_DATASETS='/project/awg/cms/CMS_DBS3_PROD_GLOBAL/current/DATASETS/part-m-00000'):
+    csvreader = spark.read.format('csv') \
+        .option('nullValue', 'null') \
+        .option('mode', 'FAILFAST')
+    dbs_files = csvreader.schema(cms_schemas.schema_files()) \
+            .load(HDFS_DBS_FILES) \
+            .select(['f_file_size', 'f_dataset_id'])\
+            .withColumnRenamed('f_dataset_id', 'DATASET_ID')
+    dbs_datasets = csvreader.schema(cms_schemas.schema_datasets()) \
+            .load(HDFS_DBS_DATASETS) \
+            .select(['d_dataset_id', 'd_dataset']).withColumnRenamed('d_dataset_id', 'DATASET_ID')
+    d_size_df = dbs_datasets.join(dbs_files, ['DATASET_ID'], how='left') \
+            .groupby('d_dataset') \
+            .agg(
+                _sum('f_file_size').alias('Dataset_Size'))
+    return d_size_df
+
+
+def b_size_df(HDFS_DFS_BLOCKS = '/project/awg/cms/CMS_DBS3_PROD_GLOBAL/current/BLOCKS/part-m-00000'):
+    csvreader = spark.read.format('csv') \
+        .option('nullValue', 'null') \
+        .option('mode', 'FAILFAST')
+    b_size_df = csvreader.schema(cms_schemas.schema_blocks()) \
+        .load(HDFS_DFS_BLOCKS) \
+        .select(['b_block_name', 'b_block_size']).withColumnRenamed('b_block_size', 'Block_Size')
+    return b_size_df
