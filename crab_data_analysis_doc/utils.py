@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, date, timedelta
-from exitcode_dict.py import *
+from exitcode_dict import *
 import click
 import numpy as np
 import pandas as pd
